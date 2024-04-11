@@ -4,12 +4,20 @@ import java.util.Random;
 
 import com.cardio_generator.outputs.OutputStrategy;
 
+/**
+ * The type Blood levels data generator.
+ */
 public class BloodLevelsDataGenerator implements PatientDataGenerator {
     private static final Random random = new Random();
     private final double[] baselineCholesterol;
     private final double[] baselineWhiteCells;
     private final double[] baselineRedCells;
 
+    /**
+     * Instantiates a new Blood levels data generator.
+     *
+     * @param patientCount the patient count
+     */
     public BloodLevelsDataGenerator(int patientCount) {
         // Initialize arrays to store baseline values for each patient
         baselineCholesterol = new double[patientCount + 1];
