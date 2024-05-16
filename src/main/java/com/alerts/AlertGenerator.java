@@ -2,7 +2,7 @@ package com.alerts;
 
 import com.data_management.DataStorage;
 import com.data_management.Patient;
-
+import java.util.logging.Logger;
 /**
  * The {@code AlertGenerator} class is responsible for monitoring patient data
  * and generating alerts when certain predefined conditions are met. This class
@@ -13,15 +13,18 @@ public class AlertGenerator {
     private DataStorage dataStorage;
     // We declare the thresholds here to make them easily editable and
     // reduce hardcoding variables
-    private final int SYSTOLIC_HI = 180;
-    private final int SYSTOLIC_LO = 90;
-    private final int DIASTOLIC_HI = 120;
-    private final int DIASTOLIC_LO = 60;
-    private final int BP_DIFFERENCE = 10;
-    private final double O_SATURATION = 0.92;
-    private final double O_DROP = 0.5;
-    private final int HEART_RATE_LO = 50;
-    private final int HEART_RATE_HI = 100;
+    private static final int SYSTOLIC_HI = 180;
+    private static final int SYSTOLIC_LO = 90;
+    private static final int DIASTOLIC_HI = 120;
+    private static final int DIASTOLIC_LO = 60;
+    private static final int BP_DIFFERENCE = 10;
+    private static final double O_SATURATION = 0.92;
+    private static final double O_DROP = 0.5;
+    private static final int HEART_RATE_LO = 50;
+    private static final int HEART_RATE_HI = 100;
+    // We're using a logger for more comprehensive outputs
+    private static final Logger LOGGER = Logger.getLogger(AlertGenerator.class.getName());
+
 
 
 
@@ -50,7 +53,7 @@ public class AlertGenerator {
      * @param patient the patient data to evaluate for alert conditions
      */
     public void evaluateData(Patient patient) {
-        // Implementation goes here
+        checkBloodPressure(patient);
     }
 
     /**
@@ -63,5 +66,20 @@ public class AlertGenerator {
      */
     private void triggerAlert(Alert alert) {
         // Implementation might involve logging the alert or notifying staff
+        LOGGER.warning("ALERT TRIGGERED: " + alert.getCondition());
     }
+    public void checkBloodPressure(Patient patient) {
+        //  Logic: If blood pressure exceeds call trigger Alert
+
+    }
+    public void checkBloodSaturation(Patient patient) {
+
+    }
+    public void checkECG (Patient patient) {
+
+    }
+    public void checkCombined (Patient patient) {
+
+    }
+
 }
