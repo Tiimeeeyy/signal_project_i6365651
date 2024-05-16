@@ -13,7 +13,7 @@ public class ECGDataGenerator implements PatientDataGenerator {
         lastEcgValues = new double[patientCount + 1];
         // Initialize the last ECG value for each patient
         for (int i = 1; i <= patientCount; i++) {
-            lastEcgValues[i] = 0; // Initial ECG value can be set to 0
+            lastEcgValues[i] = 0; // The Initial ECG value can be set to 0
         }
     }
 
@@ -38,7 +38,7 @@ public class ECGDataGenerator implements PatientDataGenerator {
 
         // Simulate different components of the ECG signal
         double pWave = 0.1 * Math.sin(2 * PI * ecgFrequency * t);
-        double qrsComplex = 0.5 * Math.sin(2 * PI * 3 * ecgFrequency * t); // QRS is higher frequency
+        double qrsComplex = 0.5 * Math.sin(2 * PI * 3 * ecgFrequency * t); // QRS is a higher frequency
         double tWave = 0.2 * Math.sin(2 * PI * 2 * ecgFrequency * t + PI / 4); // T wave is offset
 
         return pWave + qrsComplex + tWave + random.nextDouble() * 0.05; // Add small noise

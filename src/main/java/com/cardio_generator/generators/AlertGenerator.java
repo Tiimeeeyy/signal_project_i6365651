@@ -3,6 +3,7 @@ package com.cardio_generator.generators;
 import com.cardio_generator.outputs.OutputStrategy;
 
 import java.util.Random;
+// Changes: Changed Upper camel case names to camel case for easy differentiation between classes and Variables
 
 /**
  * The type Alert generator.
@@ -13,7 +14,7 @@ public class AlertGenerator implements PatientDataGenerator {
      * The constant randomGenerator.
      */
     public static final Random randomGenerator = new Random();
-    private boolean[] AlertStates; // false = resolved, true = pressed
+    private boolean[] alertStates; // false = resolved, true = pressed
 
     /**
      * Instantiates a new Alert generator.
@@ -21,15 +22,15 @@ public class AlertGenerator implements PatientDataGenerator {
      * @param patientCount the patient count
      */
     public AlertGenerator(int patientCount) {
-        AlertStates = new boolean[patientCount + 1];
+        alertStates = new boolean[patientCount + 1];
     }
 
     @Override
     public void generate(int patientId, OutputStrategy outputStrategy) {
         try {
-            if (AlertStates[patientId]) {
+            if (alertStates[patientId]) {
                 if (randomGenerator.nextDouble() < 0.9) { // 90% chance to resolve
-                    AlertStates[patientId] = false;
+                    alertStates[patientId] = false;
                     // Output the alert
                     outputStrategy.output(patientId, System.currentTimeMillis(), "Alert", "resolved");
                 }
@@ -40,7 +41,7 @@ public class AlertGenerator implements PatientDataGenerator {
                 boolean alertTriggered = randomGenerator.nextDouble() < p;
 
                 if (alertTriggered) {
-                    AlertStates[patientId] = true;
+                    alertStates[patientId] = true;
                     // Output the alert
                     outputStrategy.output(patientId, System.currentTimeMillis(), "Alert", "triggered");
                 }

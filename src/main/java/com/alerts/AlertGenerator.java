@@ -11,6 +11,21 @@ import com.data_management.Patient;
  */
 public class AlertGenerator {
     private DataStorage dataStorage;
+    // We declare the thresholds here to make them easily editable and
+    // reduce hardcoding variables
+    private final int SYSTOLIC_HI = 180;
+    private final int SYSTOLIC_LO = 90;
+    private final int DIASTOLIC_HI = 120;
+    private final int DIASTOLIC_LO = 60;
+    private final int BP_DIFFERENCE = 10;
+    private final double O_SATURATION = 0.92;
+    private final double O_DROP = 0.5;
+    private final int HEART_RATE_LO = 50;
+    private final int HEART_RATE_HI = 100;
+
+
+
+
 
     /**
      * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
