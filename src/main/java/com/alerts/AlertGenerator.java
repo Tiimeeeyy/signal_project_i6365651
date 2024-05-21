@@ -2,7 +2,12 @@ package com.alerts;
 
 import com.data_management.DataStorage;
 import com.data_management.Patient;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+
 /**
  * The {@code AlertGenerator} class is responsible for monitoring patient data
  * and generating alerts when certain predefined conditions are met. This class
@@ -11,6 +16,8 @@ import java.util.logging.Logger;
  */
 public class AlertGenerator {
     private DataStorage dataStorage;
+    private TimeUpdater timeUpdater;
+    private ScheduledExecutorService executor;
     // We declare the thresholds here to make them easily editable and
     // reduce hardcoding variables
     private static final int SYSTOLIC_HI = 180;
@@ -26,10 +33,6 @@ public class AlertGenerator {
     private static final Logger LOGGER = Logger.getLogger(AlertGenerator.class.getName());
 
 
-
-
-
-
     /**
      * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
      * The {@code DataStorage} is used to retrieve patient data that this class
@@ -40,6 +43,15 @@ public class AlertGenerator {
      */
     public AlertGenerator(DataStorage dataStorage) {
         this.dataStorage = dataStorage;
+        this.timeUpdater = new TimeUpdater();
+        this.executor = Executors.newSingleThreadScheduledExecutor();
+        this.executor.scheduleAtFixedRate(this::evaluateAllPatients, 0, 1, TimeUnit.SECONDS);
+    }
+
+    private void evaluateAllPatients() {
+        for (Patient patient : dataStorage.getAllPatients()) {
+            evaluateData(patient);
+        }
     }
 
     /**
@@ -53,7 +65,11 @@ public class AlertGenerator {
      * @param patient the patient data to evaluate for alert conditions
      */
     public void evaluateData(Patient patient) {
+        if (pa)
         checkBloodPressure(patient);
+        checkBloodSaturation(patient);
+        checkECG(patient);
+        checkCombined(patient);
     }
 
     /**
@@ -66,19 +82,23 @@ public class AlertGenerator {
      */
     private void triggerAlert(Alert alert) {
         // Implementation might involve logging the alert or notifying staff
-        LOGGER.warning("ALERT TRIGGERED: " + alert.getCondition());
+        LOGGER.warning("ALERT TRIGGERED: " + alert.getCondition() + " PATIENT" + alert.getPatientId() + " AT TIME" + alert.getTimestamp());
     }
+
     public void checkBloodPressure(Patient patient) {
         //  Logic: If blood pressure exceeds call trigger Alert
-
+        if ()
     }
+
     public void checkBloodSaturation(Patient patient) {
 
     }
-    public void checkECG (Patient patient) {
+
+    public void checkECG(Patient patient) {
 
     }
-    public void checkCombined (Patient patient) {
+
+    public void checkCombined(Patient patient) {
 
     }
 
