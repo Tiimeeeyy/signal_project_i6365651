@@ -22,17 +22,18 @@ public class CSVDataReader implements DataReader {
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = br.readLine()) != null) {
-                // Since we assume a CSV, we can say the regex splitter is a comma:
-                String[] values = line.split(",");
-                // Here we convert all the information in the CSV file and parse it to
-                // appropriate file types:
-                int patientID = Integer.parseInt(values[0]);
-                double measurementValue = Double.parseDouble(values[1]);
-                String recordType = values[2];
-                long timestamp = Long.parseLong(values[3]);
-                // After reading the input and assigning variables, we add the patient to the
-                // Database using the addPatientData Method, which takes all the
-                // previously assigned variables as input.
+                // We first split by regex ", " since we have a CSV file
+                String[] values = line.split(", ");
+                // We then split by ": " to separate the label from the value,
+                // We then assign the values to variables and then add it to the record
+                int patientID = Integer.parseInt(values[0].split(": ")[1]);
+
+                long timestamp = Long.parseLong(values[1]. split(": ")[1]);
+
+                String recordType = values[2].split(": ")[1];
+
+                double measurementValue = Double.parseDouble(values[3].split(": ")[1]);
+
                 dataStorage.addPatientData(patientID, measurementValue, recordType, timestamp);
             }
         }

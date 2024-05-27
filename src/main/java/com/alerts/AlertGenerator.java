@@ -2,10 +2,9 @@ package com.alerts;
 
 import com.data_management.DataStorage;
 import com.data_management.Patient;
+import com.data_management.PatientRecord;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -15,9 +14,6 @@ import java.util.logging.Logger;
  * it against specific health criteria.
  */
 public class AlertGenerator {
-    private DataStorage dataStorage;
-    private TimeUpdater timeUpdater;
-    private ScheduledExecutorService executor;
     // We declare the thresholds here to make them easily editable and
     // reduce hardcoding variables
     private static final int SYSTOLIC_HI = 180;
@@ -31,6 +27,7 @@ public class AlertGenerator {
     private static final int HEART_RATE_HI = 100;
     // We're using a logger for more comprehensive outputs
     private static final Logger LOGGER = Logger.getLogger(AlertGenerator.class.getName());
+    private final DataStorage dataStorage;
 
 
     /**
@@ -43,15 +40,19 @@ public class AlertGenerator {
      */
     public AlertGenerator(DataStorage dataStorage) {
         this.dataStorage = dataStorage;
-        this.timeUpdater = new TimeUpdater();
-        this.executor = Executors.newSingleThreadScheduledExecutor();
-        this.executor.scheduleAtFixedRate(this::evaluateAllPatients, 0, 1, TimeUnit.SECONDS);
     }
 
     private void evaluateAllPatients() {
         for (Patient patient : dataStorage.getAllPatients()) {
             evaluateData(patient);
         }
+    }
+
+    public List<PatientRecord> getAllRecordsForPatient(Patient patient) {
+        int id = patient.getPatientId();
+
+        return dataStorage.getRecords(id, 0, Long.MAX_VALUE);
+
     }
 
     /**
@@ -65,11 +66,17 @@ public class AlertGenerator {
      * @param patient the patient data to evaluate for alert conditions
      */
     public void evaluateData(Patient patient) {
-        if (pa)
-        checkBloodPressure(patient);
-        checkBloodSaturation(patient);
-        checkECG(patient);
-        checkCombined(patient);
+        List<PatientRecord> patientData = getAllRecordsForPatient(patient);
+        for (PatientRecord record : patientData) {
+            String type = record.getRecordType().toLowerCase();
+            if (type.equals("systolicpressure")) {
+                checkSystolicBloodPressure(record);
+            } else if (type.equals("diastolicpressure")) {
+                checkDiastolicBloodPressure(record);
+            } else if (type.equals("saturation")) {
+                checkBloodSaturation(record);
+            }
+        }
     }
 
     /**
@@ -85,20 +92,52 @@ public class AlertGenerator {
         LOGGER.warning("ALERT TRIGGERED: " + alert.getCondition() + " PATIENT" + alert.getPatientId() + " AT TIME" + alert.getTimestamp());
     }
 
-    public void checkBloodPressure(Patient patient) {
+    public void checkSystolicBloodPressure(PatientRecord patientRecord) {
         //  Logic: If blood pressure exceeds call trigger Alert
-        if ()
+
+        double val = patientRecord.getMeasurementValue();
+        String id = String.valueOf(patientRecord.getPatientId());
+        if (val <= SYSTOLIC_LO) {
+            Alert alert = new Alert(id, "SYSTOLIC TOO LOW", patientRecord.getTimestamp());
+            triggerAlert(alert);
+        } else if (val >= SYSTOLIC_HI) {
+            Alert alert = new Alert(id, "SYSTOLIC TOO HIGH", patientRecord.getTimestamp());
+            triggerAlert(alert);
+        }
+
     }
 
-    public void checkBloodSaturation(Patient patient) {
+    public void checkDiastolicBloodPressure(PatientRecord patientRecord) {
+
+        double val = patientRecord.getMeasurementValue();
+        String id = String.valueOf(patientRecord.getPatientId());
+        if (val <= DIASTOLIC_LO) {
+            // Trigger if under threshold:
+            triggerAlert(new Alert(id, "DIASTOLIC TOO LOW", patientRecord.getTimestamp()));
+
+        } else if (val >= DIASTOLIC_HI) {
+            //Trigger if over threshold:
+            triggerAlert(new Alert(id, "DIASTOLIC TOO HIGH", patientRecord.getTimestamp()));
+        }
 
     }
 
-    public void checkECG(Patient patient) {
+    public void checkBloodSaturation(PatientRecord patientRecord) {
+
+        double val = patientRecord.getMeasurementValue();
+        String id = String.valueOf(patientRecord);
+
+        if (val < O_SATURATION) {
+            triggerAlert(new Alert(id, "O SATURATION IS TOO LOW", patientRecord.getTimestamp()));
+        }
 
     }
 
-    public void checkCombined(Patient patient) {
+    public void checkECG(PatientRecord record) {
+
+    }
+
+    public void checkCombined(PatientRecord record) {
 
     }
 
