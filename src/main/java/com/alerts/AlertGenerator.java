@@ -4,8 +4,10 @@ import com.data_management.DataStorage;
 import com.data_management.Patient;
 import com.data_management.PatientRecord;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * The {@code AlertGenerator} class is responsible for monitoring patient data
@@ -28,7 +30,6 @@ public class AlertGenerator {
     // We're using a logger for more comprehensive outputs
     private static final Logger LOGGER = Logger.getLogger(AlertGenerator.class.getName());
     private final DataStorage dataStorage;
-
 
     /**
      * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
@@ -67,6 +68,9 @@ public class AlertGenerator {
      */
     public void evaluateData(Patient patient) {
         List<PatientRecord> patientData = getAllRecordsForPatient(patient);
+        evaluateProcedurallyDiastolic(patientData);
+        evaluateProcedurallySystolic(patientData);
+        checkHypotensiveHypoxemia(patient);
         for (PatientRecord record : patientData) {
             String type = record.getRecordType().toLowerCase();
             if (type.equals("systolicpressure")) {
@@ -78,6 +82,7 @@ public class AlertGenerator {
             }
         }
     }
+
 
     /**
      * Triggers an alert for the monitoring system. This method can be extended to
@@ -134,11 +139,89 @@ public class AlertGenerator {
     }
 
     public void checkECG(PatientRecord record) {
+        double val = record.getMeasurementValue();
+        String id = String.valueOf(record.getPatientId());
+
 
     }
 
     public void checkCombined(PatientRecord record) {
 
+
     }
 
+    public void evaluateProcedurallyDiastolic(List<PatientRecord> recordList) {
+        List<PatientRecord> systolicRecords = recordList.stream()
+                .filter(record -> record.getRecordType().equalsIgnoreCase("systolicpressure"))
+                .collect(Collectors.toList());
+        // Sort the List based on the timestamps
+        systolicRecords.sort(Comparator.comparing(PatientRecord::getTimestamp));
+
+        // Initialise empty double to store the previous measurement later
+        double previousMeasurement = Double.NaN;
+
+        for (PatientRecord record : systolicRecords) {
+            if (!Double.isNaN(previousMeasurement)) {
+                double difference = Math.abs(record.getMeasurementValue() - previousMeasurement);
+                if (difference > BP_DIFFERENCE) {
+                    triggerAlert(new Alert(String.valueOf(record.getPatientId()), "Systolic blood pressure difference exceeds threshold! ", record.getTimestamp()));
+
+                }
+            }
+            previousMeasurement = record.getMeasurementValue();
+        }
+    }
+
+    private void evaluateProcedurallySystolic(List<PatientRecord> recordList) {
+        List<PatientRecord> diastolicRecords = recordList.stream()
+                .filter(record -> record.getRecordType().equalsIgnoreCase("diastolicpressure"))
+                .collect(Collectors.toList());
+        // Sort the List based on the timestamps
+        diastolicRecords.sort(Comparator.comparing(PatientRecord::getTimestamp));
+
+        // Initialise empty double to store the previous measurement later
+        double previousMeasurement = Double.NaN;
+
+        for (PatientRecord record : diastolicRecords) {
+            if (!Double.isNaN(previousMeasurement)) {
+                double difference = Math.abs(record.getMeasurementValue() - previousMeasurement);
+                if (difference > BP_DIFFERENCE) {
+                    triggerAlert(new Alert(String.valueOf(record.getPatientId()), "Diastolic blood pressure difference exceeds threshold! ", record.getTimestamp()));
+
+                }
+            }
+            previousMeasurement = record.getMeasurementValue();
+        }
+    }
+
+    public void checkHypotensiveHypoxemia(Patient patient) {
+        List<PatientRecord> patientData = getAllRecordsForPatient(patient);
+        List<PatientRecord> systolicRecords = patientData.stream()
+                .filter(record -> record.getRecordType().equalsIgnoreCase("systolicpressure"))
+                .sorted(Comparator.comparing(PatientRecord::getTimestamp))
+                .collect(Collectors.toList());
+        List<PatientRecord> saturationRecords = patientData.stream()
+                .filter(record -> record.getRecordType().equalsIgnoreCase("saturation"))
+                .sorted(Comparator.comparing(PatientRecord::getTimestamp))
+                .collect(Collectors.toList());
+
+        int i = 0, j = 0;
+        while (i < systolicRecords.size() && j < saturationRecords.size()) {
+            PatientRecord systolicRecord = systolicRecords.get(i);
+            PatientRecord saturationRecord = saturationRecords.get(j);
+            if (systolicRecord.getTimestamp() == saturationRecord.getTimestamp()) {
+                if (systolicRecord.getMeasurementValue() < 90 || saturationRecord.getMeasurementValue() < 0.92) {
+                    if (systolicRecord.getMeasurementValue() < 90 && saturationRecord.getMeasurementValue() < 0.92) {
+                        triggerAlert(new Alert(String.valueOf(patient.getPatientId()), "Hypotensive Hypoxemia Alert", systolicRecord.getTimestamp()));
+                    }
+                }
+                i++;
+                j++;
+            } else if (systolicRecord.getTimestamp() < saturationRecord.getTimestamp()) {
+                i++;
+            } else {
+                j++;
+            }
+        }
+    }
 }
