@@ -44,15 +44,6 @@ public class AlertGenerator {
     }
 
     /**
-     * This method evaluates all patients by looping over them and calling the evaluate Data method.
-     */
-    private void evaluateAllPatients() {
-        for (Patient patient : dataStorage.getAllPatients()) {
-            evaluateData(patient);
-        }
-    }
-
-    /**
      * Gets all records available for a given patient.
      * @param patient The patient to get the records for.
      * @return An array list containing all the records for the patient.
@@ -104,7 +95,7 @@ public class AlertGenerator {
      */
     private void triggerAlert(Alert alert) {
         // Implementation might involve logging the alert or notifying staff
-        LOGGER.warning("ALERT TRIGGERED: " + alert.getCondition() + " PATIENT" + alert.getPatientId() + " AT TIME" + alert.getTimestamp());
+        LOGGER.warning("ALERT TRIGGERED: " + alert.getCondition() + " PATIENT " + alert.getPatientId() + " AT TIME " + alert.getTimestamp());
     }
 
     public void checkSystolicBloodPressure(PatientRecord patientRecord) {

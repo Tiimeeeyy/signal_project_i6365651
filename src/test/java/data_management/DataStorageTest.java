@@ -1,25 +1,42 @@
 package data_management;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.data_management.DataStorage;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.data_management.DataStorage;
-import com.data_management.PatientRecord;
-
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DataStorageTest {
+    private DataStorage dataStorage;
+
+    @BeforeEach
+    public void setup() {
+        dataStorage = new DataStorage();
+    }
 
     @Test
-    void testAddAndGetRecords() {
-        // TODO Perhaps you can implement a mock data reader to mock the test data?
-//        // DataReader reader
-//        //DataStorage storage = new DataStorage(reader);
-//        storage.addPatientData(1, 100.0, "WhiteBloodCells", 1714376789050L);
-//        storage.addPatientData(1, 200.0, "WhiteBloodCells", 1714376789051L);
-//
-//        List<PatientRecord> records = storage.getRecords(1, 1714376789050L, 1714376789051L);
-//        assertEquals(2, records.size()); // Check if two records are retrieved
-//        assertEquals(100.0, records.get(0).getMeasurementValue()); // Validate first record
+    void addPatientData_shouldAddNewPatientData() {
+        dataStorage.addPatientData(1, 100.0, "HeartRate", 1714376789050L);
+        assertEquals(1, dataStorage.getAllPatients().size());
+    }
+
+    @Test
+    void addPatientData_shouldUpdateExistingPatientData() {
+        dataStorage.addPatientData(1, 100.0, "HeartRate", 1714376789050L);
+        dataStorage.addPatientData(1, 200.0, "HeartRate", 1714376789051L);
+        assertEquals(1, dataStorage.getAllPatients().size());
+    }
+
+    @Test
+    void getRecords_shouldReturnEmptyListForNonexistentPatient() {
+        assertTrue(dataStorage.getRecords(1, 1700000000000L, 1800000000000L).isEmpty());
+    }
+
+    @Test
+    void getRecords_shouldReturnEmptyListForRecordsOutsideTimeRange() {
+        dataStorage.addPatientData(1, 100.0, "HeartRate", 1714376789050L);
+        dataStorage.addPatientData(1, 200.0, "HeartRate", 1714376789051L);
+        assertTrue(dataStorage.getRecords(1, 1800000000000L, 1900000000000L).isEmpty());
     }
 }
