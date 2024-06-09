@@ -58,6 +58,7 @@ class WebSocketReaderTest {
         webSocketReader.recieveData("invalid data");
         verify(dataStorage, never()).addPatientData(anyInt(), anyDouble(), anyString(), anyLong());
     }
+
     @Test
     void receiveData_shouldNotAddIncompletePatientData() throws URISyntaxException {
         DataStorage dataStorage1 = mock(DataStorage.class);
@@ -66,4 +67,19 @@ class WebSocketReaderTest {
         webSocketReader1.recieveData("1,122332535, temperature");
         verify(dataStorage1, never()).addPatientData(anyInt(), anyDouble(), anyString(), anyLong());
     }
+
+    @Test
+    public void onMessage_shouldHandleContinuousDataStream() throws URISyntaxException {
+        DataStorage dataStorage = mock(DataStorage.class);
+        WebSocketReader webSocketReader = new WebSocketReader(new URI("ws://localhost:8080"), dataStorage);
+
+        // Simulate a continuous data stream
+        for (int i = 0; i < 100; i++) {
+            webSocketReader.onMessage(i + ",1622544000,temperature,36.6");
+        }
+
+        // Verify that addPatientData was called 100 times
+        verify(dataStorage, times(100)).addPatientData(anyInt(), anyDouble(), anyString(), anyLong());
+    }
 }
+
