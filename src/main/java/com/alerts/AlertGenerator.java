@@ -43,12 +43,20 @@ public class AlertGenerator {
         this.dataStorage = dataStorage;
     }
 
+    /**
+     * This method evaluates all patients by looping over them and calling the evaluate Data method.
+     */
     private void evaluateAllPatients() {
         for (Patient patient : dataStorage.getAllPatients()) {
             evaluateData(patient);
         }
     }
 
+    /**
+     * Gets all records available for a given patient.
+     * @param patient The patient to get the records for.
+     * @return An array list containing all the records for the patient.
+     */
     public List<PatientRecord> getAllRecordsForPatient(Patient patient) {
         int id = patient.getPatientId();
 
@@ -79,6 +87,8 @@ public class AlertGenerator {
                 checkDiastolicBloodPressure(record);
             } else if (type.equals("saturation")) {
                 checkBloodSaturation(record);
+            } else if (type.equals("ecg")) {
+                checkECG(record);
             }
         }
     }
@@ -112,6 +122,10 @@ public class AlertGenerator {
 
     }
 
+    /**
+     * Checks if a patient exceeds safe limits for Diastolic blood pressure
+     * @param patientRecord The patient record to be evaluated.
+     */
     public void checkDiastolicBloodPressure(PatientRecord patientRecord) {
 
         double val = patientRecord.getMeasurementValue();
@@ -127,6 +141,10 @@ public class AlertGenerator {
 
     }
 
+    /**
+     * Checks the blood saturation of the patient to be evaluated.
+     * @param patientRecord The patient record to be evaluated.
+     */
     public void checkBloodSaturation(PatientRecord patientRecord) {
 
         double val = patientRecord.getMeasurementValue();
@@ -138,18 +156,25 @@ public class AlertGenerator {
 
     }
 
+    /**
+     * Checks the ECG Data of a given patient record. We set the threshold to be 0.3.
+     * @param record The patient record to be evaluated
+     */
     public void checkECG(PatientRecord record) {
         double val = record.getMeasurementValue();
         String id = String.valueOf(record.getPatientId());
+        double average = 0.3;
+        if (val >= average) {
+            triggerAlert(new Alert(id, "ECG over average! please take action", record.getTimestamp()));
+        }
 
 
     }
 
-    public void checkCombined(PatientRecord record) {
-
-
-    }
-
+    /**
+     * Procedurally evaluates the patient data checking for Diastolic pressure.
+     * @param recordList The list of Diastolic records for the patient.
+     */
     public void evaluateProcedurallyDiastolic(List<PatientRecord> recordList) {
         List<PatientRecord> systolicRecords = recordList.stream()
                 .filter(record -> record.getRecordType().equalsIgnoreCase("systolicpressure"))
@@ -172,6 +197,10 @@ public class AlertGenerator {
         }
     }
 
+    /**
+     * Procedurally evaluates the patient data checking for Systolic pressure.
+     * @param recordList The list of Systolic records for the patient
+     */
     private void evaluateProcedurallySystolic(List<PatientRecord> recordList) {
         List<PatientRecord> diastolicRecords = recordList.stream()
                 .filter(record -> record.getRecordType().equalsIgnoreCase("diastolicpressure"))
@@ -194,6 +223,10 @@ public class AlertGenerator {
         }
     }
 
+    /**
+     * Checks for a Hypotensive Hypoxemia alert
+     * @param patient The patient to be evaluated.
+     */
     public void checkHypotensiveHypoxemia(Patient patient) {
         List<PatientRecord> patientData = getAllRecordsForPatient(patient);
         List<PatientRecord> systolicRecords = patientData.stream()
