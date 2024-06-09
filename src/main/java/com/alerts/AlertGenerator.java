@@ -103,11 +103,14 @@ public class AlertGenerator {
 
         double val = patientRecord.getMeasurementValue();
         String id = String.valueOf(patientRecord.getPatientId());
+        Alert alert = null;
         if (val <= SYSTOLIC_LO) {
-            Alert alert = new Alert(id, "SYSTOLIC TOO LOW", patientRecord.getTimestamp());
-            triggerAlert(alert);
+            alert = new BloodPressureAlertFactory().createAlert(id, "SYSTOLIC TOO LOW", patientRecord.getTimestamp());
         } else if (val >= SYSTOLIC_HI) {
-            Alert alert = new Alert(id, "SYSTOLIC TOO HIGH", patientRecord.getTimestamp());
+            alert = new BloodPressureAlertFactory().createAlert(id, "SYSTOLIC TOO HIGH", patientRecord.getTimestamp());
+        }
+
+        if(alert != null){
             triggerAlert(alert);
         }
 
@@ -131,6 +134,10 @@ public class AlertGenerator {
             alert = new BloodPressureAlertFactory().createAlert(id, "SYSTOLIC TOO HIGH", patientRecord.getTimestamp());
         }
 
+        if(alert != null){
+            triggerAlert(alert);
+        }
+
     }
 
     /**
@@ -147,6 +154,10 @@ public class AlertGenerator {
             alert = new BloodPressureAlertFactory().createAlert(id, "OXYGEN SATURATION TOO LOW", patientRecord.getTimestamp());
         }
 
+        if(alert != null){
+            triggerAlert(alert);
+        }
+
     }
 
     /**
@@ -159,7 +170,7 @@ public class AlertGenerator {
         double average = 0.3;
         Alert alert = null;
         if (val >= average) {
-            alert = new ECGAlertFactory().createAlert(id, "ECG above average!", record.getTimestamp());
+            alert = new ECGAlertFactory().createAlert(id, "ECG ABOVE AVERAGE!", record.getTimestamp());
         }
 
         if (alert != null){
