@@ -156,6 +156,24 @@ public class AlertGenerator {
         }
     }
 
+    boolean checkAlert(Alert alert, PatientRecord record){
+        String type = record.getRecordType().toLowerCase();
+        double val = record.getMeasurementValue();
+
+        switch(type) {
+            case "systolicpressure":
+                return val <= SYSTOLIC_LO || val >= SYSTOLIC_HI;
+            case "diastolicpressure":
+                return val <= DIASTOLIC_LO || val >= DIASTOLIC_LO;
+            case "saturation":
+                return val < O_SATURATION;
+            case "ecg":
+                return val >=  0.3;
+            default:
+                return false;
+        }
+    }
+
     /**
      * Checks for a Hypotensive Hypoxemia alert
      * @param patient The patient to be evaluated.
