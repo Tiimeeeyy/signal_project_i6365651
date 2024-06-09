@@ -1,5 +1,6 @@
 package com.data_management;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Map;
  * patient IDs.
  */
 public class DataStorage {
+    private static DataStorage dsInstance;
     private Map<Integer, Patient> patientMap; // Stores patient objects indexed by their unique patient ID.
 
     /**
@@ -20,6 +22,12 @@ public class DataStorage {
      */
     public DataStorage() {
         this.patientMap = new HashMap<>();
+    }
+    public static synchronized DataStorage getInstance() {
+        if(dsInstance == null){
+            dsInstance = new DataStorage();
+        }
+        return dsInstance;
     }
 
     /**
