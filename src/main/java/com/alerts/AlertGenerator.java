@@ -16,8 +16,6 @@ import java.util.stream.Collectors;
  * it against specific health criteria.
  */
 public class AlertGenerator {
-    // We declare the thresholds here to make them easily editable and
-    // reduce hardcoding variables
     private static final int SYSTOLIC_HI = 180;
     private static final int SYSTOLIC_LO = 90;
     private static final int DIASTOLIC_HI = 120;
@@ -27,9 +25,14 @@ public class AlertGenerator {
     private static final double O_DROP = 0.5;
     private static final int HEART_RATE_LO = 50;
     private static final int HEART_RATE_HI = 100;
+
     // We're using a logger for more comprehensive outputs
     private static final Logger LOGGER = Logger.getLogger(AlertGenerator.class.getName());
     private final DataStorage dataStorage;
+
+    private final AlertStrategy bloodPressureStrategy;
+    private final AlertStrategy oxygenSaturationStrategy;
+    private final AlertStrategy ecgStrategy;
 
     /**
      * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
@@ -41,6 +44,11 @@ public class AlertGenerator {
      */
     public AlertGenerator(DataStorage dataStorage) {
         this.dataStorage = dataStorage;
+        // Initializing strategies with factory subclasses
+
+        this.bloodPressureStrategy = new BloodPressureStrategy(new BloodPressureAlertFactory());
+        this.oxygenSaturationStrategy = new OxygenSaturationStrategy(new BloodOxygenAlertFactory());
+        this.ecgStrategy = new ECGStrategy(new ECGAlertFactory());
     }
 
     /**
@@ -71,15 +79,17 @@ public class AlertGenerator {
         evaluateProcedurallySystolic(patientData);
         checkHypotensiveHypoxemia(patient);
         for (PatientRecord record : patientData) {
+            Alert alert = null;
             String type = record.getRecordType().toLowerCase();
-            if (type.equals("systolicpressure")) {
-                checkSystolicBloodPressure(record);
-            } else if (type.equals("diastolicpressure")) {
-                checkDiastolicBloodPressure(record);
+            if (type.equals("systolicpressure") || type.equals("diastolicpressure")) {
+                alert = bloodPressureStrategy.checkAlert(record);
             } else if (type.equals("saturation")) {
-                checkBloodSaturation(record);
+                alert = oxygenSaturationStrategy.checkAlert(record);
             } else if (type.equals("ecg")) {
-                checkECG(record);
+                alert = ecgStrategy.checkAlert(record);
+            }
+            if (alert != null) {
+                triggerAlert(alert);
             }
         }
     }
@@ -98,92 +108,6 @@ public class AlertGenerator {
         LOGGER.warning("ALERT TRIGGERED: " + alert.getCondition() + " PATIENT " + alert.getPatientId() + " AT TIME " + alert.getTimestamp());
     }
 
-    public void checkSystolicBloodPressure(PatientRecord patientRecord) {
-        //  Logic: If blood pressure exceeds call trigger Alert
-
-        double val = patientRecord.getMeasurementValue();
-        String id = String.valueOf(patientRecord.getPatientId());
-        Alert alert = null;
-        if (val <= SYSTOLIC_LO) {
-            alert = new BloodPressureAlertFactory().createAlert(id, "SYSTOLIC TOO LOW", patientRecord.getTimestamp());
-        } else if (val >= SYSTOLIC_HI) {
-            alert = new BloodPressureAlertFactory().createAlert(id, "SYSTOLIC TOO HIGH", patientRecord.getTimestamp());
-        }
-
-        if(alert != null){
-            triggerAlert(alert);
-        }
-
-    }
-
-    /**
-     * Checks if a patient exceeds safe limits for Diastolic blood pressure
-     * @param patientRecord The patient record to be evaluated.
-     */
-    public void checkDiastolicBloodPressure(PatientRecord patientRecord) {
-
-        double val = patientRecord.getMeasurementValue();
-        String id = String.valueOf(patientRecord.getPatientId());
-        Alert alert = null;
-        if (val <= DIASTOLIC_LO) {
-            // Trigger if under threshold:
-            alert = new BloodPressureAlertFactory().createAlert(id, "SYSTOLIC TOO LOW", patientRecord.getTimestamp());
-
-        } else if (val >= DIASTOLIC_HI) {
-            //Trigger if over threshold:
-            alert = new BloodPressureAlertFactory().createAlert(id, "SYSTOLIC TOO HIGH", patientRecord.getTimestamp());
-        }
-
-        if(alert != null){
-            triggerAlert(alert);
-        }
-
-    }
-
-    /**
-     * Checks the blood saturation of the patient to be evaluated.
-     * @param patientRecord The patient record to be evaluated.
-     */
-    public void checkBloodSaturation(PatientRecord patientRecord) {
-
-        double val = patientRecord.getMeasurementValue();
-        String id = String.valueOf(patientRecord);
-        Alert alert = null;
-
-        if (val < O_SATURATION) {
-            alert = new BloodPressureAlertFactory().createAlert(id, "OXYGEN SATURATION TOO LOW", patientRecord.getTimestamp());
-        }
-
-        if(alert != null){
-            triggerAlert(alert);
-        }
-
-    }
-
-    /**
-     * Checks the ECG Data of a given patient record. We set the threshold to be 0.3.
-     * @param record The patient record to be evaluated
-     */
-    public void checkECG(PatientRecord record) {
-        double val = record.getMeasurementValue();
-        String id = String.valueOf(record.getPatientId());
-        double average = 0.3;
-        Alert alert = null;
-        if (val >= average) {
-            alert = new ECGAlertFactory().createAlert(id, "ECG ABOVE AVERAGE!", record.getTimestamp());
-        }
-
-        if (alert != null){
-            triggerAlert(alert);
-        }
-
-
-    }
-
-    /**
-     * Procedurally evaluates the patient data checking for Diastolic pressure.
-     * @param recordList The list of Diastolic records for the patient.
-     */
     public void evaluateProcedurallyDiastolic(List<PatientRecord> recordList) {
         List<PatientRecord> systolicRecords = recordList.stream()
                 .filter(record -> record.getRecordType().equalsIgnoreCase("systolicpressure"))
